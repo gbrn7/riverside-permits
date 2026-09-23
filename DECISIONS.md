@@ -223,16 +223,16 @@ In this project, I used the AI assistant (Antigravity / CLI) as an active, high-
 
 ## 6. What We'd Do With Another Six Hours
 
-If allocated an additional six hours, we would prioritize the following high-leverage items:
+With Part 4's automated AI generator and dual-gate verifier now completed, tested, and committed, an additional six hours would be allocated to the following production enhancements:
 
-1. **Part 4 Agent & Verification Runner:**
-   - Package the automated generator and AST linter into an executable CLI script (`npm run generate:journey -- --story=RC-4`) that generates the flowcharts, documents, and code for RC-4 (Withdraw) and executes the verification gate.
-2. **Optimistic Locking & Concurrency Control:**
-   - Add `@Version` fields to `PermitEntity` to handle the real-world scenario where two council officers open and renew the same permit simultaneously.
-3. **End-to-End Playwright Suite:**
-   - Implement browser-level integration tests asserting full journey flows: searching with filters, opening a detail view, launching the renewal modal, verifying the fee calculation banner, and confirming back-navigation retains search state.
-4. **Interactive Audit Trail & Handover View:**
-   - Directly resolve Hall Supervisor Sarah Lim's primary complaint regarding the "weekend handover" by building a visual timeline of all staff actions and state changes across shifts.
+1. **Optimistic Locking & Concurrency Control:**
+   - Add `@Version` fields to `PermitEntity` to prevent race conditions when two council officers simultaneously attempt to action or renew the same permit record.
+2. **End-to-End Playwright Automated Suite:**
+   - Implement headless browser integration tests asserting the full user journey: applying multi-parameter filters, opening permit details, triggering the two-step renewal with fee cap preview, and testing the withdrawal modal with live 500-char counter.
+3. **Interactive Audit Trail & Weekend Handover Dashboard:**
+   - Directly resolve Hall Supervisor Sarah Lim's primary operational pain point by introducing a visual shift handover dashboard summarizing all staff mutations, cancellations, and fee waivers executed across shifts.
+4. **CI/CD Integration for the AI Verification Gate:**
+   - Wire `python3 pipeline/run_pipeline.py --verify-only` into GitHub Actions as a mandatory pull-request status check, permanently blocking any AI-generated PR that introduces undeclared schema concepts or fails 100% RTM test coverage.
 
 ---
 
