@@ -57,44 +57,46 @@ public class DatabaseSeeder implements CommandLineRunner {
         PurposeEntity commercialUse = purposeRepository.save(new PurposeEntity("COMMERCIAL_USE", "Commercial Use", false, true));
         PurposeEntity councilUse = purposeRepository.save(new PurposeEntity("COUNCIL_USE", "Council Use", true, true));
 
-        // 3. Seed Permits from Sample Data (Section 3.3)
-        List<PermitEntity> samplePermits = List.of(
-            // P-2026-0001: Amelia Tan, ACTIVE, 14 days
-            new PermitEntity("P-2026-0001", "Amelia Tan", riversideHall, communityEvent,
-                PermitStatus.ACTIVE, LocalDate.of(2026, 6, 1), LocalDate.of(2026, 6, 14), new BigDecimal("1680.00")),
+        LocalDate today = LocalDate.now();
 
-            // P-2026-0002: Grace Fellowship, ACTIVE, 30 days
+        // 3. Seed Permits from Sample Data (Section 3.3 & 3.4)
+        List<PermitEntity> samplePermits = List.of(
+            // P-2026-0001: Amelia Tan, ACTIVE, 14 days (ongoing, ends in 11 days)
+            new PermitEntity("P-2026-0001", "Amelia Tan", riversideHall, communityEvent,
+                PermitStatus.ACTIVE, today.minusDays(3), today.plusDays(11), new BigDecimal("1680.00")),
+
+            // P-2026-0002: Grace Fellowship, ACTIVE, 30 days (ongoing, ends in 20 days)
             new PermitEntity("P-2026-0002", "Grace Fellowship", eastgatePavilion, religiousService,
-                PermitStatus.ACTIVE, LocalDate.of(2026, 6, 5), LocalDate.of(2026, 7, 4), new BigDecimal("2850.00")),
+                PermitStatus.ACTIVE, today.minusDays(10), today.plusDays(20), new BigDecimal("2850.00")),
 
             // P-2026-0003: Devi Ramasamy, EXPIRED > 90 days ago (Demonstrates 409 EXPIRED_TOO_LONG)
             new PermitEntity("P-2026-0003", "Devi Ramasamy", northbrookRoom, privateFunction,
-                PermitStatus.EXPIRED, LocalDate.of(2025, 11, 1), LocalDate.of(2025, 11, 7), new BigDecimal("560.00")),
+                PermitStatus.EXPIRED, today.minusDays(127), today.minusDays(120), new BigDecimal("560.00")),
 
-            // P-2026-0004: Northbrook Yoga Co., ACTIVE, 14 days
+            // P-2026-0004: Northbrook Yoga Co., ACTIVE, 14 days (ongoing, ends in 9 days)
             new PermitEntity("P-2026-0004", "Northbrook Yoga Co.", northbrookRoom, commercialUse,
-                PermitStatus.ACTIVE, LocalDate.of(2026, 6, 10), LocalDate.of(2026, 6, 24), new BigDecimal("1120.00")),
+                PermitStatus.ACTIVE, today.minusDays(5), today.plusDays(9), new BigDecimal("1120.00")),
 
-            // P-2026-0006: Marcus Oyelaran, AWAITING_PAYMENT, 2 days (Cannot be renewed)
+            // P-2026-0006: Marcus Oyelaran, AWAITING_PAYMENT, 2 days (Future booking, cannot be renewed)
             new PermitEntity("P-2026-0006", "Marcus Oyelaran", southbankAssembly, privateFunction,
-                PermitStatus.AWAITING_PAYMENT, LocalDate.of(2026, 6, 20), LocalDate.of(2026, 6, 21), new BigDecimal("300.00")),
+                PermitStatus.AWAITING_PAYMENT, today.plusDays(10), today.plusDays(12), new BigDecimal("300.00")),
 
             // P-2026-0008: Priya Nair, WITHDRAWN, 2 days (Terminal state)
             new PermitEntity("P-2026-0008", "Priya Nair", riversideHall, privateFunction,
-                PermitStatus.WITHDRAWN, LocalDate.of(2026, 5, 20), LocalDate.of(2026, 5, 22), new BigDecimal("360.00")),
+                PermitStatus.WITHDRAWN, today.minusDays(20), today.minusDays(17), new BigDecimal("360.00")),
 
-            // P-2026-0009: Southbank Arts Trust, EXPIRED
+            // P-2026-0009: Southbank Arts Trust, EXPIRED > 90 days ago
             new PermitEntity("P-2026-0009", "Southbank Arts Trust", southbankAssembly, communityEvent,
-                PermitStatus.EXPIRED, LocalDate.of(2026, 2, 1), LocalDate.of(2026, 2, 10), new BigDecimal("1500.00")),
+                PermitStatus.EXPIRED, today.minusDays(110), today.minusDays(100), new BigDecimal("1500.00")),
 
             // 4. Additional Edge-Case Seeds (Section 3.4)
             // P-2026-0010: Council Use free renewal (ACTIVE -> stays ACTIVE, fee £0.00)
             new PermitEntity("P-2026-0010", "Riverside Parks Dept", riversideHall, councilUse,
-                PermitStatus.ACTIVE, LocalDate.of(2026, 7, 1), LocalDate.of(2026, 7, 3), BigDecimal.ZERO),
+                PermitStatus.ACTIVE, today.minusDays(1), today.plusDays(14), BigDecimal.ZERO),
 
             // P-2026-0011: Eastgate Drama Club, EXPIRED ~45 days ago (Within 90 days -> eligible for renewal)
             new PermitEntity("P-2026-0011", "Eastgate Drama Club", eastgatePavilion, communityEvent,
-                PermitStatus.EXPIRED, LocalDate.now().minusDays(51), LocalDate.now().minusDays(45), new BigDecimal("570.00"))
+                PermitStatus.EXPIRED, today.minusDays(51), today.minusDays(45), new BigDecimal("570.00"))
         );
 
         permitRepository.saveAll(samplePermits);
