@@ -15,27 +15,78 @@ The Permit Register handles municipal facility reservations, statutory fee calcu
 
 ---
 
-## 2. Quickstart with Docker Compose
+## 2. Running with Docker or Podman
 
-To spin up the entire full-stack application (Backend on `8080`, Frontend on `3000`):
+The entire stack is containerized with standard OCI multi-stage images. You can run it using either **Docker** or **Podman**.
+
+### Option A: Running with Docker
 
 ```bash
 # Build and run containers
 docker compose up --build
 
-# Or run in detached background mode
+# Or run in background (detached)
 docker compose up --build -d
+
+# To shut down:
+docker compose down
 ```
 
-### Access URLs:
+*(WSL 2 note: Ensure Docker Desktop is running on Windows with WSL 2 integration enabled under Docker Desktop Settings → Resources → WSL Integration).*
+
+---
+
+### Option B: Running with Podman
+
+#### 1. Using Podman Compose:
+```bash
+# Using Podman's built-in compose provider:
+podman compose up --build
+
+# Or with python podman-compose:
+podman-compose up --build
+
+# To shut down:
+podman compose down
+```
+
+#### 2. Using Pure Podman CLI (Without Compose):
+```bash
+# 1. Create container network
+podman network create riverside-permit-network
+
+# 2. Build and launch Backend container
+podman build -t riverside-permit-backend ./backend
+podman run -d \
+  --name riverside-permit-backend \
+  --network riverside-permit-network \
+  -p 8080:8080 \
+  riverside-permit-backend
+
+# 3. Build and launch Frontend container (Nginx reverse proxy)
+podman build -t riverside-permit-frontend ./frontend
+podman run -d \
+  --name riverside-permit-frontend \
+  --network riverside-permit-network \
+  -p 3000:80 \
+  riverside-permit-frontend
+
+# To stop and remove:
+podman stop riverside-permit-frontend riverside-permit-backend
+podman rm riverside-permit-frontend riverside-permit-backend
+```
+
+*(Podman installation for Ubuntu/WSL: `sudo apt-get update && sudo apt-get install -y podman podman-compose`, or enable WSL integration in Podman Desktop).*
+
+---
+
+### Access URLs & Credentials:
 - **Staff Portal (Frontend):** [http://localhost:3000](http://localhost:3000)
 - **REST API (Backend):** [http://localhost:8080/api/permits](http://localhost:8080/api/permits)
 - **H2 Database Console:** [http://localhost:8080/h2-console](http://localhost:8080/h2-console)  
   - *JDBC URL:* `jdbc:h2:mem:permitdb`
   - *Username:* `sa`
   - *Password:* *(blank)*
-
-*(Note for WSL 2 users: Ensure Docker Desktop is running and WSL 2 integration is enabled under Docker Desktop Settings $\rightarrow$ Resources $\rightarrow$ WSL Integration).*
 
 ---
 
