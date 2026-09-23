@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
-import { AlertCircle, Calendar, CheckCircle2, DollarSign, Info, ShieldAlert, X } from 'lucide-react';
+import { Calendar, CheckCircle2, DollarSign, Info, ShieldAlert, X, AlertCircle } from 'lucide-react';
 import type { PermitDetail, RenewalPreview } from '../types/permit';
 import { api, ApiRequestError } from '../services/api';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Alert, AlertDescription } from './ui/alert';
+import { Badge } from './ui/badge';
 
 interface RenewalModalProps {
   permit: PermitDetail;
@@ -86,13 +90,13 @@ export const RenewalModal: React.FC<RenewalModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
-          <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/80">
+          <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-blue-600" />
-            <h2 className="text-lg font-bold text-slate-900">
+            <h2 className="text-base font-bold text-slate-900">
               {step === 'INPUT' ? 'Extend Permit End Date' : 'Confirm Renewal & Fee'}
             </h2>
           </div>
@@ -109,10 +113,10 @@ export const RenewalModal: React.FC<RenewalModalProps> = ({
         <div className="p-6">
           {/* Error Message */}
           {errorMessage && (
-            <div className="mb-5 p-3.5 bg-red-50 border border-red-200 rounded-md flex items-start space-x-2.5 text-sm text-red-700">
-              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-              <span>{errorMessage}</span>
-            </div>
+            <Alert variant="destructive" className="mb-5">
+              <AlertCircle className="w-4 h-4 text-red-600 mt-0.5" />
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
           )}
 
           {step === 'INPUT' ? (
@@ -138,44 +142,42 @@ export const RenewalModal: React.FC<RenewalModalProps> = ({
               </div>
 
               {/* New Date Picker */}
-              <div>
-                <label htmlFor="modalNewEndDate" className="block text-sm font-semibold text-slate-700 mb-1">
+              <div className="space-y-1.5">
+                <label htmlFor="modalNewEndDate" className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
                   New End Date <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   id="modalNewEndDate"
                   type="date"
                   min={permit.endDate}
                   value={newEndDate}
                   onChange={(e) => setNewEndDate(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="text-xs text-slate-500">
                   Must be strictly after {permit.endDate}.
                 </p>
               </div>
 
               {/* Modal Actions */}
-              <div className="flex justify-end space-x-3 pt-3 border-t border-slate-100">
-                <button
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={handleClose}
-                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md shadow-sm hover:bg-slate-50 cursor-pointer"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
                   disabled={isLoading || !newEndDate}
-                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 cursor-pointer"
                 >
                   {isLoading ? 'Calculating...' : 'Preview Fee Breakdown'}
-                </button>
+                </Button>
               </div>
             </form>
           ) : preview ? (
-            <div className="space-y-5">
+            <div className="space-y-4">
               {/* Fee Breakdown Card */}
               <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm space-y-2.5">
                 <div className="flex justify-between">
@@ -190,11 +192,16 @@ export const RenewalModal: React.FC<RenewalModalProps> = ({
                   <span className="text-slate-600">Days Added:</span>
                   <span className="font-medium text-slate-800">{preview.daysAdded} calendar days</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-slate-600">Billable Days:</span>
-                  <span className="font-medium text-slate-800">
-                    {preview.cappedDays} days {preview.isCapped && '(Capped at 30)'}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium text-slate-800">{preview.cappedDays} days</span>
+                    {preview.isCapped && (
+                      <Badge variant="warning" className="text-[10px] py-0">
+                        30-Day Cap
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600">Daily Rate:</span>
@@ -211,56 +218,56 @@ export const RenewalModal: React.FC<RenewalModalProps> = ({
 
               {/* Statutory Cap Banner (FR-14) */}
               {preview.isCapped && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-md flex items-start space-x-2 text-xs text-amber-800">
-                  <ShieldAlert className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                  <span>
-                    <strong>30-Day Policy Cap Applied:</strong> Extension of {preview.daysAdded} days exceeds the statutory cap. The holder is billed for 30 days per council fee policy.
-                  </span>
-                </div>
+                <Alert variant="warning" className="py-2.5">
+                  <ShieldAlert className="w-4 h-4 text-amber-600 mt-0.5" />
+                  <AlertDescription className="text-amber-800 text-xs">
+                    <strong>30-Day Statutory Cap:</strong> Extension of {preview.daysAdded} days exceeds statutory maximum. Holder is invoiced for 30 days per council fee regulations.
+                  </AlertDescription>
+                </Alert>
               )}
 
               {/* Council Use Zero-Fee Notice (FR-15) */}
               {preview.isCouncilUse && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-md flex items-start space-x-2 text-xs text-emerald-800">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                  <span>
+                <Alert variant="success" className="py-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5" />
+                  <AlertDescription className="text-emerald-800 text-xs">
                     <strong>Council Business Exemption:</strong> Council Use permits are issued free of charge (£0.00). No invoice will be generated.
-                  </span>
-                </div>
+                  </AlertDescription>
+                </Alert>
               )}
 
               {/* Status Transition Notice (BR-5) */}
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-md flex items-start space-x-2 text-xs text-blue-800">
-                <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                <span>
+              <Alert variant="info" className="py-2.5">
+                <Info className="w-4 h-4 text-blue-600 mt-0.5" />
+                <AlertDescription className="text-blue-800 text-xs">
                   On confirmation, status moves to <strong>{preview.resultingStatus === 'ACTIVE' ? 'Active' : 'Awaiting Payment'}</strong>.
-                </span>
-              </div>
+                </AlertDescription>
+              </Alert>
 
               {/* Officer Verbal Confirmation Prompt */}
               <p className="text-xs text-slate-500 italic text-center">
-                Permits Officer: Read the calculated total to the holder before confirming.
+                Permits Officer: Read the calculated total to the holder on the phone before confirming.
               </p>
 
               {/* Modal Actions */}
-              <div className="flex justify-end space-x-3 pt-3 border-t border-slate-100">
-                <button
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => setStep('INPUT')}
                   disabled={isLoading}
-                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md shadow-sm hover:bg-slate-50 cursor-pointer"
                 >
                   Change Date
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="success"
                   onClick={handleCommit}
                   disabled={isLoading}
-                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 border border-transparent rounded-md shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 cursor-pointer"
                 >
                   <DollarSign className="w-4 h-4 mr-1" />
                   {isLoading ? 'Saving...' : 'Confirm & Extend Permit'}
-                </button>
+                </Button>
               </div>
             </div>
           ) : null}

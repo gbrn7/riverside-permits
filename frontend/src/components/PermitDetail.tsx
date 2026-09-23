@@ -17,6 +17,10 @@ import { api, ApiRequestError } from '../services/api';
 import { StatusBadge } from './StatusBadge';
 import { RenewalModal } from './RenewalModal';
 import { WithdrawModal } from './WithdrawModal';
+import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Badge } from './ui/badge';
 
 interface PermitDetailProps {
   permitId: number;
@@ -120,19 +124,15 @@ export const PermitDetail: React.FC<PermitDetailProps> = ({ permitId, onBack }) 
   if (errorMessage || !permit) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-12">
-        <div className="bg-red-50 border border-red-200 p-6 rounded-lg text-center">
-          <AlertTriangle className="w-10 h-10 text-red-500 mx-auto mb-3" />
-          <h2 className="text-lg font-bold text-red-900 mb-2">Error Loading Permit</h2>
-          <p className="text-sm text-red-700 mb-5">{errorMessage || 'Permit not found'}</p>
-          <button
-            type="button"
-            onClick={onBack}
-            className="inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 shadow-sm cursor-pointer"
-          >
+        <Alert variant="destructive" className="max-w-lg mx-auto text-center p-6">
+          <AlertTriangle className="w-10 h-10 mx-auto mb-3" />
+          <AlertTitle className="text-lg font-bold mb-2">Error Loading Permit</AlertTitle>
+          <AlertDescription className="mb-5">{errorMessage || 'Permit not found'}</AlertDescription>
+          <Button variant="outline" onClick={onBack} className="mx-auto">
             <ArrowLeft className="w-4 h-4 mr-1.5" />
             Back to Register
-          </button>
-        </div>
+          </Button>
+        </Alert>
       </div>
     );
   }
@@ -146,211 +146,225 @@ export const PermitDetail: React.FC<PermitDetailProps> = ({ permitId, onBack }) 
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Navigation Header */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <button
+        <Button
           type="button"
+          variant="ghost"
           onClick={onBack}
-          className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
+          className="text-blue-600 hover:text-blue-800 -ml-2"
         >
           <ArrowLeft className="w-4 h-4 mr-1.5" />
           Back to Register (Filters Preserved)
-        </button>
+        </Button>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-3">
           {isEligibleForWithdrawal && (
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={() => setIsWithdrawModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 hover:bg-red-50 rounded-md shadow-sm transition-colors cursor-pointer"
+              className="text-red-700 border-red-300 hover:bg-red-50"
             >
               <AlertTriangle className="w-4 h-4 mr-1.5 text-red-600" />
               Withdraw Permit
-            </button>
+            </Button>
           )}
 
           {eligibility.eligible ? (
-            <button
+            <Button
               type="button"
               onClick={() => setIsRenewalModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-sm transition-colors cursor-pointer"
             >
               <RefreshCw className="w-4 h-4 mr-1.5" />
               Renew Permit
-            </button>
+            </Button>
           ) : (
-            <div className="inline-flex items-center px-3 py-1.5 rounded-md bg-slate-100 text-slate-500 text-xs font-medium border border-slate-200">
-              <Info className="w-3.5 h-3.5 mr-1" />
+            <Badge variant="secondary" className="px-3 py-1.5 text-xs font-medium text-slate-500 gap-1">
+              <Info className="w-3.5 h-3.5" />
               Renewal Blocked
-            </div>
+            </Badge>
           )}
         </div>
       </div>
 
       {/* Success Notification */}
       {successBanner && (
-        <div className="mb-6 p-4 rounded-lg bg-emerald-50 border border-emerald-200 flex items-start space-x-3 text-emerald-800 text-sm shadow-sm">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="font-semibold">{successBanner}</p>
+        <Alert variant="success" className="mb-6 flex items-start justify-between shadow-sm">
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div>
+              <AlertTitle className="font-semibold">Update Successful</AlertTitle>
+              <AlertDescription>{successBanner}</AlertDescription>
+            </div>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setSuccessBanner(null)}
-            className="text-emerald-500 hover:text-emerald-700 text-xs font-semibold cursor-pointer"
+            className="text-emerald-700 hover:text-emerald-900 text-xs h-7"
           >
             Dismiss
-          </button>
-        </div>
+          </Button>
+        </Alert>
       )}
 
       {/* Ineligibility Warning Banner */}
       {!eligibility.eligible && eligibility.reason && (
-        <div className="mb-6 p-4 rounded-lg bg-amber-50 border border-amber-200 flex items-start space-x-3 text-amber-800 text-sm">
-          <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+        <Alert variant="warning" className="mb-6 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-600" />
           <div>
-            <p className="font-semibold">Renewal Not Available</p>
-            <p className="text-amber-700 mt-0.5">{eligibility.reason}</p>
+            <AlertTitle className="font-semibold">Renewal Not Available</AlertTitle>
+            <AlertDescription className="text-amber-800">{eligibility.reason}</AlertDescription>
           </div>
-        </div>
+        </Alert>
       )}
 
       {/* Primary Details Card (RC-2 Read-Only) */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
-        <div className="px-6 py-5 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <span className="text-xs uppercase font-semibold text-slate-500 tracking-wider">Permit Reference</span>
-            <h2 className="text-2xl font-extrabold text-slate-900">{permit.permitNumber}</h2>
-          </div>
-          <div className="flex items-center space-x-3">
-            <span className="text-xs text-slate-500">Current Status:</span>
-            <StatusBadge status={permit.status} />
-          </div>
-        </div>
-
-        <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Holder */}
-          <div className="flex items-start space-x-3">
-            <User className="w-5 h-5 text-slate-400 mt-1" />
+      <Card className="shadow-sm border-slate-200 overflow-hidden mb-8">
+        <CardHeader className="bg-slate-50/70 border-b border-slate-200 py-4 px-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs uppercase font-medium text-slate-500">Permit Holder</p>
-              <p className="text-base font-semibold text-slate-900">{permit.holderName}</p>
+              <span className="text-xs uppercase font-semibold text-slate-500 tracking-wider">Permit Reference</span>
+              <CardTitle className="text-2xl font-extrabold text-slate-900 mt-0.5">{permit.permitNumber}</CardTitle>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-slate-500">Current Status:</span>
+              <StatusBadge status={permit.status} />
             </div>
           </div>
+        </CardHeader>
 
-          {/* Hall */}
-          <div className="flex items-start space-x-3">
-            <MapPin className="w-5 h-5 text-slate-400 mt-1" />
-            <div>
-              <p className="text-xs uppercase font-medium text-slate-500">Community Hall</p>
-              <p className="text-base font-semibold text-slate-900">{permit.hallName}</p>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Holder */}
+            <div className="flex items-start space-x-3">
+              <User className="w-5 h-5 text-slate-400 mt-1" />
+              <div>
+                <p className="text-xs uppercase font-medium text-slate-500">Permit Holder</p>
+                <p className="text-base font-semibold text-slate-900">{permit.holderName}</p>
+              </div>
+            </div>
+
+            {/* Hall */}
+            <div className="flex items-start space-x-3">
+              <MapPin className="w-5 h-5 text-slate-400 mt-1" />
+              <div>
+                <p className="text-xs uppercase font-medium text-slate-500">Community Hall</p>
+                <p className="text-base font-semibold text-slate-900">{permit.hallName}</p>
+              </div>
+            </div>
+
+            {/* Purpose */}
+            <div className="flex items-start space-x-3">
+              <Tag className="w-5 h-5 text-slate-400 mt-1" />
+              <div>
+                <p className="text-xs uppercase font-medium text-slate-500">Booking Purpose</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-base font-semibold text-slate-900">{permit.purposeName}</span>
+                  {permit.isCouncilUse && (
+                    <Badge variant="success" className="text-xs">
+                      Council Business (£0)
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Start Date */}
+            <div className="flex items-start space-x-3">
+              <Calendar className="w-5 h-5 text-slate-400 mt-1" />
+              <div>
+                <p className="text-xs uppercase font-medium text-slate-500">Start Date</p>
+                <p className="text-base font-semibold text-slate-900">{permit.startDate}</p>
+              </div>
+            </div>
+
+            {/* End Date */}
+            <div className="flex items-start space-x-3">
+              <Calendar className="w-5 h-5 text-blue-500 mt-1" />
+              <div>
+                <p className="text-xs uppercase font-medium text-slate-500">End Date</p>
+                <p className="text-base font-bold text-blue-700">{permit.endDate}</p>
+              </div>
+            </div>
+
+            {/* Total Current Fee */}
+            <div className="flex items-start space-x-3">
+              <Clock className="w-5 h-5 text-slate-400 mt-1" />
+              <div>
+                <p className="text-xs uppercase font-medium text-slate-500">Total Fee</p>
+                <p className="text-base font-extrabold text-slate-900">£{permit.fee.toFixed(2)}</p>
+              </div>
             </div>
           </div>
-
-          {/* Purpose */}
-          <div className="flex items-start space-x-3">
-            <Tag className="w-5 h-5 text-slate-400 mt-1" />
-            <div>
-              <p className="text-xs uppercase font-medium text-slate-500">Booking Purpose</p>
-              <p className="text-base font-semibold text-slate-900">
-                {permit.purposeName}
-                {permit.isCouncilUse && (
-                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">
-                    Council Business (£0)
-                  </span>
-                )}
-              </p>
-            </div>
-          </div>
-
-          {/* Start Date */}
-          <div className="flex items-start space-x-3">
-            <Calendar className="w-5 h-5 text-slate-400 mt-1" />
-            <div>
-              <p className="text-xs uppercase font-medium text-slate-500">Start Date</p>
-              <p className="text-base font-semibold text-slate-900">{permit.startDate}</p>
-            </div>
-          </div>
-
-          {/* End Date */}
-          <div className="flex items-start space-x-3">
-            <Calendar className="w-5 h-5 text-blue-500 mt-1" />
-            <div>
-              <p className="text-xs uppercase font-medium text-slate-500">End Date</p>
-              <p className="text-base font-bold text-blue-700">{permit.endDate}</p>
-            </div>
-          </div>
-
-          {/* Total Current Fee */}
-          <div className="flex items-start space-x-3">
-            <Clock className="w-5 h-5 text-slate-400 mt-1" />
-            <div>
-              <p className="text-xs uppercase font-medium text-slate-500">Total Fee</p>
-              <p className="text-base font-extrabold text-slate-900">£{permit.fee.toFixed(2)}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Renewal History & Action Log Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Renewal History (RC-2 AC-1) */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <div className="flex items-center space-x-2 mb-4 border-b border-slate-100 pb-3">
+        <Card className="shadow-sm border-slate-200">
+          <CardHeader className="py-4 px-6 border-b border-slate-100 flex flex-row items-center gap-2">
             <RefreshCw className="w-5 h-5 text-blue-600" />
-            <h3 className="text-base font-bold text-slate-900">Renewal History</h3>
-          </div>
-
-          {permit.renewalHistory.length === 0 ? (
-            <p className="text-sm text-slate-500 italic py-4 text-center">
-              This permit has not been renewed yet.
-            </p>
-          ) : (
-            <div className="divide-y divide-slate-100">
-              {permit.renewalHistory.map((rec) => (
-                <div key={rec.id} className="py-3 text-sm flex justify-between items-center">
-                  <div>
-                    <div className="font-medium text-slate-800">
-                      Extended to: <span className="font-bold text-blue-600">{rec.newEndDate}</span>
+            <CardTitle className="text-base font-bold text-slate-900">Renewal History</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            {permit.renewalHistory.length === 0 ? (
+              <p className="text-sm text-slate-500 italic py-4 text-center">
+                This permit has not been renewed yet.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {permit.renewalHistory.map((rec) => (
+                  <div
+                    key={rec.id}
+                    className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-sm"
+                  >
+                    <div>
+                      <div className="font-semibold text-slate-800">
+                        Extended to {rec.newEndDate}
+                      </div>
+                      <div className="text-xs text-slate-500 mt-0.5">
+                        Previous end date: {rec.previousEndDate} • Actioned: {rec.performedAt ? new Date(rec.performedAt).toLocaleDateString() : 'N/A'}
+                      </div>
                     </div>
-                    <div className="text-xs text-slate-500">
-                      Previous end date: {rec.previousEndDate} • Actioned: {rec.performedAt ? new Date(rec.performedAt).toLocaleDateString() : 'N/A'}
+                    <div className="text-right">
+                      <span className="font-bold text-slate-900">£{rec.fee.toFixed(2)}</span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="font-semibold text-slate-900">£{rec.fee.toFixed(2)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Audit Log / Event History */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <div className="flex items-center space-x-2 mb-4 border-b border-slate-100 pb-3">
+        <Card className="shadow-sm border-slate-200">
+          <CardHeader className="py-4 px-6 border-b border-slate-100 flex flex-row items-center gap-2">
             <History className="w-5 h-5 text-slate-600" />
-            <h3 className="text-base font-bold text-slate-900">Audit History Log</h3>
-          </div>
-
-          {permit.history.length === 0 ? (
-            <p className="text-sm text-slate-500 italic py-4 text-center">
-              No audit records logged yet.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {permit.history.map((event, idx) => (
-                <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="font-bold text-slate-700 tracking-wider">{event.action}</span>
-                    <span className="text-slate-500">
-                      {event.performedAt ? new Date(event.performedAt).toLocaleString() : ''}
-                    </span>
+            <CardTitle className="text-base font-bold text-slate-900">Audit History Log</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            {permit.history.length === 0 ? (
+              <p className="text-sm text-slate-500 italic py-4 text-center">
+                No audit records logged yet.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {permit.history.map((event, idx) => (
+                  <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-bold text-slate-700 tracking-wider uppercase">{event.action}</span>
+                      <span className="text-slate-500">
+                        {event.performedAt ? new Date(event.performedAt).toLocaleString() : ''}
+                      </span>
+                    </div>
+                    <p className="font-mono text-slate-600 truncate">{event.detail}</p>
                   </div>
-                  <p className="font-mono text-slate-600 truncate">{event.detail}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Renewal Two-Step Modal */}

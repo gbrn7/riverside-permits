@@ -6,6 +6,7 @@ import { FilterBar } from './FilterBar';
 import { PermitTable } from './PermitTable';
 import { Pagination } from './Pagination';
 import { EmptyState } from './EmptyState';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 const DEFAULT_FILTERS: SearchFilters = {
   permitNumber: '',
@@ -144,13 +145,13 @@ export const PermitRegister: React.FC<PermitRegisterProps> = ({ onSelectPermit }
 
       {/* Error alert banner */}
       {errorMessage && (
-        <div className="mb-6 p-4 rounded-md bg-red-50 border border-red-200 flex items-start space-x-3 text-red-800 text-sm">
-          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <div>
-            <p className="font-semibold">Unable to load permits</p>
-            <p className="text-red-700">{errorMessage}</p>
+            <AlertTitle>Unable to load permits</AlertTitle>
+            <AlertDescription>{errorMessage}</AlertDescription>
           </div>
-        </div>
+        </Alert>
       )}
 
       {/* Filter Bar */}

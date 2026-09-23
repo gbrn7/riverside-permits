@@ -65,7 +65,7 @@ export const App: React.FC = () => {
       <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4">
           <p>© 2026 Riverside Council — Public Facilities & Community Hall Management System.</p>
-          <p className="mt-1 text-slate-400">RC-1 Search • RC-2 View • RC-3 Renew</p>
+          <p className="mt-1 text-slate-400">RC-1 Search • RC-2 View • RC-3 Renew • RC-4 Withdraw</p>
         </div>
       </footer>
     </div>

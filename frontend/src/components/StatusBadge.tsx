@@ -1,25 +1,26 @@
 import React from 'react';
 import type { PermitStatus } from '../types/permit';
+import { Badge } from './ui/badge';
 
 interface StatusBadgeProps {
   status: PermitStatus;
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
-  const getBadgeStyle = () => {
+  const getVariant = () => {
     switch (status) {
       case 'ACTIVE':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        return 'success' as const;
       case 'AWAITING_PAYMENT':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
+        return 'warning' as const;
       case 'EXPIRED':
-        return 'bg-rose-50 text-rose-700 border-rose-200';
+        return 'destructive' as const;
       case 'WITHDRAWN':
-        return 'bg-slate-100 text-slate-600 border-slate-300';
+        return 'secondary' as const;
       case 'DRAFT':
-        return 'bg-sky-50 text-sky-700 border-sky-200';
+        return 'info' as const;
       default:
-        return 'bg-slate-50 text-slate-700 border-slate-200';
+        return 'outline' as const;
     }
   };
 
@@ -41,10 +42,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   };
 
   return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getBadgeStyle()}`}
-    >
+    <Badge variant={getVariant()} className="font-medium tracking-wide">
       {getLabel()}
-    </span>
+    </Badge>
   );
 };
