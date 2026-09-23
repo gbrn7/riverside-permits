@@ -90,4 +90,17 @@ export const api = {
   async getPurposes(): Promise<Purpose[]> {
     return request<Purpose[]>('/reference/purposes');
   },
+
+  async withdrawPermit(id: number, reason: string): Promise<PermitDetail> {
+    const res = await fetch(`${API_BASE}/permits/${id}/withdraw`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason }),
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to withdraw permit (${res.status})`);
+    }
+    return res.json();
+  },
 };

@@ -16,6 +16,7 @@ import type { PermitDetail as PermitDetailType } from '../types/permit';
 import { api, ApiRequestError } from '../services/api';
 import { StatusBadge } from './StatusBadge';
 import { RenewalModal } from './RenewalModal';
+import { WithdrawModal } from './WithdrawModal';
 
 interface PermitDetailProps {
   permitId: number;
@@ -28,6 +29,7 @@ export const PermitDetail: React.FC<PermitDetailProps> = ({ permitId, onBack }) 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
   const [isRenewalModalOpen, setIsRenewalModalOpen] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
 
   const fetchPermit = useCallback(async () => {
     setIsLoading(true);
@@ -135,6 +137,11 @@ export const PermitDetail: React.FC<PermitDetailProps> = ({ permitId, onBack }) 
     );
   }
 
+  const isEligibleForWithdrawal =
+    permit &&
+    permit.status !== 'WITHDRAWN' &&
+    new Date(permit.startDate) > new Date();
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Navigation Header */}
@@ -149,6 +156,17 @@ export const PermitDetail: React.FC<PermitDetailProps> = ({ permitId, onBack }) 
         </button>
 
         <div className="flex items-center space-x-3">
+          {isEligibleForWithdrawal && (
+            <button
+              type="button"
+              onClick={() => setIsWithdrawModalOpen(true)}
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-white border border-red-300 hover:bg-red-50 rounded-md shadow-sm transition-colors cursor-pointer"
+            >
+              <AlertTriangle className="w-4 h-4 mr-1.5 text-red-600" />
+              Withdraw Permit
+            </button>
+          )}
+
           {eligibility.eligible ? (
             <button
               type="button"
@@ -342,6 +360,19 @@ export const PermitDetail: React.FC<PermitDetailProps> = ({ permitId, onBack }) 
           isOpen={isRenewalModalOpen}
           onClose={() => setIsRenewalModalOpen(false)}
           onSuccess={handleRenewalSuccess}
+        />
+      )}
+
+      {/* Withdrawal Modal (RC-4) */}
+      {isWithdrawModalOpen && (
+        <WithdrawModal
+          permit={permit}
+          onClose={() => setIsWithdrawModalOpen(false)}
+          onSuccess={(updated) => {
+            setIsWithdrawModalOpen(false);
+            setPermit(updated);
+            setSuccessBanner(`Permit ${updated.permitNumber} has been successfully withdrawn. Hall reservation released.`);
+          }}
         />
       )}
     </div>

@@ -74,4 +74,16 @@ public class PermitController {
         PermitDetailDto response = permitService.commitRenewal(id, request);
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * Requirement: FR-19, FR-20, FR-21, FR-22, FR-23, FR-24
+     * BR-11, BR-12, BR-13, BR-14, BR-15
+     */
+    @PostMapping("/{id}/withdraw")
+    public ResponseEntity<PermitDetailDto> withdrawPermit(
+            @PathVariable Long id,
+            @Valid @RequestBody WithdrawPermitRequest request) {
+        PermitDetailDto updated = permitService.withdrawPermit(id, request);
+        return ResponseEntity.ok(updated);
+    }
 }

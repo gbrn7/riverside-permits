@@ -9,6 +9,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.riverside.permits.api.dto.*;
+import uk.gov.riverside.permits.domain.exception.IneligibleStatusException;
+import uk.gov.riverside.permits.domain.exception.PermitAlreadyStartedException;
 import uk.gov.riverside.permits.domain.exception.ResourceNotFoundException;
 import uk.gov.riverside.permits.domain.model.PermitEntity;
 import uk.gov.riverside.permits.domain.model.PermitHistoryEntity;
@@ -263,5 +265,39 @@ public class PermitService {
                 renewalDtos,
                 historyDtos
         );
+    }
+
+    /**
+     * Requirement: FR-19, FR-20, FR-21, FR-22, FR-23, FR-24
+     * Business Rules: BR-11, BR-12, BR-13, BR-14, BR-15
+     */
+    @Transactional
+    public PermitDetailDto withdrawPermit(Long id, WithdrawPermitRequest request) {
+        PermitEntity permit = permitRepository.findByIdWithHallAndPurpose(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Permit with id " + id + " not found"));
+
+        if (permit.getStatus() == PermitStatus.WITHDRAWN) {
+            throw new IneligibleStatusException("Permit is already in terminal status WITHDRAWN and cannot be withdrawn again.");
+        }
+
+        LocalDate today = LocalDate.now();
+        if (!permit.getStartDate().isAfter(today)) {
+            throw new PermitAlreadyStartedException("Permit cannot be withdrawn because the event has already started (start date: " 
+                    + permit.getStartDate() + "). In-progress or past events must be processed via cancellation.");
+        }
+
+        permit.setStatus(PermitStatus.WITHDRAWN);
+        permit.setUpdatedAt(LocalDateTime.now());
+        permitRepository.save(permit);
+
+        PermitHistoryEntity history = new PermitHistoryEntity(
+                permit.getId(),
+                "WITHDRAWN",
+                request.reason().trim(),
+                "system"
+        );
+        permitHistoryRepository.save(history);
+
+        return toDetailDto(permit);
     }
 }

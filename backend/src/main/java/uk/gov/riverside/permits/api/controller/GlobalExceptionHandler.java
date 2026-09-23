@@ -11,6 +11,7 @@ import uk.gov.riverside.permits.api.dto.ApiErrorResponse;
 import uk.gov.riverside.permits.domain.exception.ExpiredTooLongException;
 import uk.gov.riverside.permits.domain.exception.IneligibleStatusException;
 import uk.gov.riverside.permits.domain.exception.InvalidEndDateException;
+import uk.gov.riverside.permits.domain.exception.PermitAlreadyStartedException;
 import uk.gov.riverside.permits.domain.exception.ResourceNotFoundException;
 
 @RestControllerAdvice
@@ -44,6 +45,13 @@ public class GlobalExceptionHandler {
         log.warn("Expired too long: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(new ApiErrorResponse("EXPIRED_TOO_LONG", ex.getMessage()));
+    }
+
+    @ExceptionHandler(PermitAlreadyStartedException.class)
+    public ResponseEntity<ApiErrorResponse> handlePermitAlreadyStarted(PermitAlreadyStartedException ex) {
+        log.warn("Permit already started: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ApiErrorResponse("PERMIT_ALREADY_STARTED", ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
