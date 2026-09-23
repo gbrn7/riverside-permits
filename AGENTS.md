@@ -32,10 +32,10 @@ Every feature and user journey in this system progresses strictly through this p
 ```
 
 ### The Golden Build Rule
-> **Build exclusively from `artifacts/1d-technical-document.md`, NEVER directly from raw requirements.**
-- If a requirement or rule is absent from `1d-technical-document.md`, **do not write code for it**.
-- If you find an ambiguity, conflict, or gap during implementation, **stop and escalate** or update `ASSUMPTIONS.md` and `1d` before implementing.
-- Never silently invent or assume business rules in code.
+> **Always build the system strictly based on `artifacts/` (specifically `artifacts/1d-technical-document.md`) and `ASSUMPTIONS.md`, NEVER directly from raw or unverified requirements.**
+- If a requirement, entity, endpoint, or business rule is absent from `artifacts/` or `ASSUMPTIONS.md`, **do not write code for it**.
+- **User Confirmation Protocol:** If you encounter any ambiguity, gap, conflict, or if you need to confirm a design decision, **stop and ask the user directly for confirmation**. Do not guess or assume silently.
+- Every architectural choice, fee formula, and state transition must strictly reflect the authoritative records in `artifacts/` and `ASSUMPTIONS.md`.
 
 ---
 
