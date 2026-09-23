@@ -11,7 +11,7 @@
 
 Building software from municipal public-sector requirements is fundamentally an exercise in **reconciliation and traceability**, not rapid code typing. In this project, raw inputs from four stakeholders directly contradicted each other: signed BA user stories specified one set of rules, while post-signoff communications from Finance and Hall Operations introduced statutory fee caps, grace periods for lapsed permits, and mandatory display overrides.
 
-This document details the architectural decisions, scope tradeoffs, artifact evaluations, and formal quality controls implemented across the journey chain.
+To navigate this complexity safely, I orchestrated AI as an active conductor: using a **dual-model evaluation strategy (Claude + Gemini)** to analyze and stress-test assumptions on `ASSUMPTIONS.md`, steering models iteratively through the 6-stage artifact pipeline, and establishing strict anti-hallucination and anti-drop verification gates. This document details the architectural decisions, AI orchestration workflows, scope tradeoffs, artifact evaluations, and quality controls implemented across the journey.
 
 ---
 
@@ -166,17 +166,44 @@ Standard prompt engineering ("be careful", "do not hallucinate") is insufficient
 
 ---
 
-## 5. Where AI Helped Most vs. Where It Got in the Way
+## 5. How I Orchestrated and Used AI Throughout This Project
 
-### 5.1 Where AI Helped Most
-- **Contract & Schema Scaffolding:** Synthesizing TypeScript interfaces, Java records, JPA entity boilerplate, and Liquibase migrations from Markdown ERDs took seconds instead of hours.
-- **Traceability Matrix Compilation:** AI was exceptional at cross-referencing `stories.md` against messy, informal emails in `clarifications.md` to flag potential contradictions (e.g., spotting Priya’s 30-day fee cap vs. the original story’s uncapped multiplication).
-- **Test Case Edge Synthesis:** Generating parameterized test data covering date boundary conditions (e.g., leap years, exactly 90 days expired vs 91 days).
+AI was not treated as an autonomous "code oracle" or black-box generator. In public-sector municipal software involving statutory revenue and facility allocations, unmonitored AI generation is a direct commercial and compliance liability. Instead, I operated as a **system conductor and lead architect**, steering models through structured prompt chains, cross-examining multiple foundation models, and enforcing strict human-in-the-loop review gates.
 
-### 5.2 Where AI Got in the Way
-- **Defaulting to Generic CRUD Patterns:** LLMs have a strong prior toward conventional patterns. When asked to implement renewals, the agent repeatedly attempted to insert a status check `permit.status == ACTIVE` only, discarding the 90-day expired grace window because "expired records shouldn't be mutable" in standard web applications.
-- **Silent Assumption Smoothing:** When confronted with ambiguities (such as missing hall daily rates), the agent tended to invent arbitrary numbers without notifying the engineer, hiding commercial risks.
-- **Over-Engineering Architectural Layers:** Left unconstrained, the agent attempted to scaffold CQRS event sourcing, Redis caching layers, and multi-tenant isolation for a straightforward single-council administrative register.
+### 5.1 The Human Conductor Model & Pipeline Orchestration
+I structured the build into sequential, discrete cognitive stages:
+1. **Deconstruction & Reconciliation:** Raw requirements (`stories.md` + `clarifications.md`) were fed to AI specifically for contradiction detection and stakeholder mapping, rather than asking for code directly.
+2. **Progressive Artifact Elaboration:** The artifact pipeline was walked stage-by-stage:
+   $$\text{Raw Inputs} \longrightarrow \text{1a (Business Flowchart)} \longrightarrow \text{1b (Technical Flowchart)} \longrightarrow \text{1c (Functional Doc)} \longrightarrow \text{1d (Technical Doc)}$$
+   At each transition, I verified that no requirement was dropped or invented before prompting the next stage.
+3. **Specification-First Code Generation:** AI coding assistants were instructed by `AGENTS.md` with the Prime Directive: *Build exclusively from `1d-technical-document.md`, never from raw requirements.* This prevented the AI from re-interpreting ambiguous stories on the fly.
+
+### 5.2 Multi-Model Strategy: Comparing & Evaluating Claude and Gemini
+To produce **`ASSUMPTIONS.md` (Part 3)**, I ran the conflicting source documents through both **Claude** and **Gemini**, evaluating and synthesizing their respective outputs:
+
+1. **Comparative Strengths Observed:**
+   - **Claude (Policy Hierarchy & Nuance):** Excelled at organizational hierarchy and policy weight. Claude immediately recognized that Finance Manager Priya Raghavan's email represented binding council fee regulations that supersede signed BA user stories. It produced thorough risk categorizations and explicit stakeholder escalation routes.
+   - **Gemini (Technical Rigor & Mathematical Bounds):** Excelled at computational and schema implications. Gemini identified subtle date-math pitfalls (`ChronoUnit.DAYS.between` boundary conditions), noted the ambiguity between calendar days vs. business days for the 90-day grace period, and flagged how unapproved draft statuses affect database query performance.
+2. **Cross-Evaluating Blind Spots:**
+   - One model initially treated "Council Use bookings are free" purely as a fee waiver (`£0.00`), failing to recognize that the permit status must remain `ACTIVE` (bypassing the `AWAITING_PAYMENT` state entirely).
+   - The other model caught this state transition rule but missed the tie-breaking rule for Ops sorting (`start_date ASC`, tie-breaker `created_at DESC`).
+   - Cross-evaluating both models allowed me to merge the best insights into a single authoritative `ASSUMPTIONS.md` and informed the explicit business rules codified in `1d` and `AGENTS.md`. Relying on a single model creates single-point-of-failure cognitive biases.
+
+### 5.3 Active Steering, Arguing & Course Corrections (The "Messy" Reality)
+AI models constantly revert to generic patterns unless actively challenged. Throughout the test, I engaged in direct iterative steering:
+- **Correcting the Expired Status Bias:** The AI repeatedly attempted to implement `permit.status == ACTIVE` as the sole renewal check, rejecting expired permits because standard web tutorials treat "expired" as a terminal dead state. I had to explicitly challenge the model with Finance's 90-day grace policy to ensure lapsed permits were handled correctly.
+- **Enforcing the Statutory Fee Cap:** In early calculation drafts, the AI repeatedly generated `daysAdded * dailyRate`. I intervened to inject the statutory 30-day cap (`min(daysAdded, 30)`), pointing out that uncapped charges violate the 2024 Fees Review.
+- **Preventing Hardcoded Enums:** When modeling halls, the AI defaulted to hardcoding a Java `enum` with the 4 halls. I rejected this design, referencing Jonathan Wee's chat note that Westfield Hall launches in Q4, forcing a normalized relational reference table.
+- **Human-Readable Labels vs. Database Keys:** The AI frequently generated DTOs returning raw foreign keys (`hallId: 1`, `purposeId: 2`). I enforced supervisor Sarah Lim's requirement for human-readable labels (`hallName: "Riverside Community Hall"`).
+
+### 5.4 Where AI Helped Most vs. Where It Got in the Way
+- **Where AI Helped Most:**
+  - **Rapid Contract & Boilerplate Scaffolding:** Translating relational schemas into JPA entities, DTO records, and TypeScript interfaces took minutes instead of hours.
+  - **Comprehensive Edge Case Synthesis:** Brainstorming date boundary conditions (e.g., leap years, exactly 90 days vs 91 days expired).
+  - **Traceability Matrix Compilation:** Cross-referencing 18 acceptance criteria across multiple documents.
+- **Where AI Got in the Way:**
+  - **Silent Assumption Smoothing:** Glossing over missing daily rates by inventing numbers rather than escalating the missing reference data.
+  - **Architecture Bloat:** Attempting to introduce microservices, event buses, and complex abstractions for what should be a lean, high-reliability modular monolith.
 
 ---
 

@@ -135,3 +135,18 @@ If you encounter an ambiguity or contradiction while implementing:
    - Financial & operational impact.
    - Recommended assumption based on council policy precedence.
 4. Record the decision in `DECISIONS.md` and `ASSUMPTIONS.md`.
+
+---
+
+## 6. AI Orchestration Transparency & DECISIONS.md Accountability
+
+AI agents operating in this repository must maintain complete transparency regarding how AI is orchestrated and steered. All agents must ensure that `DECISIONS.md` explicitly documents:
+
+1. **Human-in-the-Loop Conductor Model:**
+   - The human engineer acts as the lead system architect, domain referee, and quality gatekeeper. AI is never given unmonitored authority over business, revenue, or statutory compliance rules.
+2. **Multi-Model Orchestration Strategy:**
+   - How multiple complementary models (e.g., Claude for policy nuance and functional documentation; Gemini for technical data contracts, precision date-math, and CLI execution) are combined to cross-evaluate assumptions and eliminate single-model blind spots.
+3. **Active Steering, Arguing & Course Corrections:**
+   - Documenting concrete instances where the human engineer challenged the AI's default behavior (e.g., rejecting generic e-commerce patterns in favor of council grace periods, enforcing the 30-day fee cap, and preventing hardcoded hall lists).
+4. **Adversarial Verification Architecture:**
+   - Separating generation from evaluation by deploying a Generator Agent (building from `1d`) alongside a Critic / Verifier Agent (validating strictly against `1c` functional acceptance criteria).
