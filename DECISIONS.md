@@ -205,6 +205,20 @@ AI models constantly revert to generic patterns unless actively challenged. Thro
   - **Silent Assumption Smoothing:** Glossing over missing daily rates by inventing numbers rather than escalating the missing reference data.
   - **Architecture Bloat:** Attempting to introduce microservices, event buses, and complex abstractions for what should be a lean, high-reliability modular monolith.
 
+### 5.5 Human-AI Pairing Protocol: How I Direct and Steer the AI in Practice
+In this project, I used the AI assistant (Antigravity / CLI) as an active, high-velocity pairing partner, maintaining strict supervisory control through the following operational principles:
+
+1. **Declarative Micro-Directives over Giant Vague Prompts:**
+   Rather than issuing open-ended prompts like *"build the permit system"*, I guided the agent through concise, checkpointed commands. I instructed the agent to first parse deliverables from `BRIEF.md`, construct steering rules (`AGENTS.md`), capture architectural decisions (`DECISIONS.md`), and stage atomic Git commits before moving to code.
+2. **Phase Gating & Roadmap Checkpoints:**
+   I continually audited project phase alignment (e.g., asking *"now we are on which part"*, verifying deliverable completion against the brief). This prevents the AI from skipping foundational steps (like the assumptions artifact or technical document) and racing straight into code.
+3. **Worktree Hygiene & Artifact Cleanup:**
+   When iterative drafts produced duplicate or redundant files (such as `assumptions_2.md` and draft directories), I explicitly directed the AI to prune redundant files and commit clean states. Clean workspace context prevents model confusion and prompt cache pollution.
+4. **Planning Before Implementation:**
+   Before allowing the AI to write a single line of backend code in Part 2, I mandated: *"part 2 focus on build backend first, based on artifacts list the to do list step by step in the backend part"*. This forced the AI to construct an exhaustive, contract-traceable checklist mapped directly to `1d-technical-document.md` and `AGENTS.md`, establishing an explicit verification contract before coding begins.
+5. **Enforcing Meta-Accountability:**
+   I required the AI to record this steering methodology directly in `AGENTS.md` and `DECISIONS.md`. By forcing the AI system to document how it is steered, the engineering workflow itself becomes reproducible, auditable, and transparent to external evaluators.
+
 ---
 
 ## 6. What We'd Do With Another Six Hours
