@@ -1,5 +1,6 @@
 package uk.gov.riverside.permits.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import uk.gov.riverside.permits.domain.model.PermitStatus;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,4 +19,14 @@ public record RenewalPreviewDto(
     BigDecimal calculatedFee,
     boolean isCapped,
     PermitStatus resultingStatus
-) {}
+) {
+    @JsonProperty("fee")
+    public BigDecimal fee() {
+        return calculatedFee;
+    }
+
+    @JsonProperty("capped")
+    public boolean capped() {
+        return isCapped;
+    }
+}

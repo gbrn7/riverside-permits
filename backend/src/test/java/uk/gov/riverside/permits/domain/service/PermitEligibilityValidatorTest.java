@@ -105,4 +105,31 @@ class PermitEligibilityValidatorTest {
         assertThatThrownBy(() -> validator.validateRenewalEligibility(draft, newEnd))
                 .isInstanceOf(IneligibleStatusException.class);
     }
+
+    // Requirement: Validation Sequence (1d §4 RC-3: status -> expired-window -> date)
+    @Test
+    @DisplayName("should evaluate status eligibility before date validation (fail-fast sequence)")
+    void shouldPrioritizeStatusValidationOverDateValidation() {
+        LocalDate currentEnd = LocalDate.of(2026, 6, 14);
+        LocalDate invalidDate = currentEnd.minusDays(5);
+
+        PermitEntity withdrawn = new PermitEntity("P-2", "Holder", hall, purpose,
+                PermitStatus.WITHDRAWN, LocalDate.of(2026, 6, 1), currentEnd, BigDecimal.TEN);
+
+        assertThatThrownBy(() -> validator.validateRenewalEligibility(withdrawn, invalidDate))
+                .isInstanceOf(IneligibleStatusException.class);
+    }
+
+    @Test
+    @DisplayName("should evaluate expired > 90 days before date validation (fail-fast sequence)")
+    void shouldPrioritizeExpiredTooLongOverDateValidation() {
+        LocalDate currentEnd = LocalDate.now().minusDays(100);
+        LocalDate invalidDate = currentEnd.minusDays(5);
+
+        PermitEntity expiredTooLong = new PermitEntity("P-3", "Holder", hall, purpose,
+                PermitStatus.EXPIRED, currentEnd.minusDays(10), currentEnd, BigDecimal.TEN);
+
+        assertThatThrownBy(() -> validator.validateRenewalEligibility(expiredTooLong, invalidDate))
+                .isInstanceOf(ExpiredTooLongException.class);
+    }
 }

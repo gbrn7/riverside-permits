@@ -19,23 +19,23 @@ public class PermitEligibilityValidator {
     public static final int MAX_EXPIRED_CALENDAR_DAYS = 90;
 
     public void validateRenewalEligibility(PermitEntity permit, LocalDate newEndDate) {
-        // BR-3: Date Validation
-        if (newEndDate == null || !newEndDate.isAfter(permit.getEndDate())) {
-            throw new InvalidEndDateException(permit.getEndDate(), newEndDate);
-        }
-
-        // BR-1: Status Eligibility
+        // Step 1 (BR-1): Status Eligibility (ACTIVE or EXPIRED only)
         PermitStatus status = permit.getStatus();
         if (status != PermitStatus.ACTIVE && status != PermitStatus.EXPIRED) {
             throw new IneligibleStatusException(status);
         }
 
-        // BR-2: 90-Day Expired Window
+        // Step 2 (BR-2): 90-Day Expired Window
         if (status == PermitStatus.EXPIRED) {
             long expiredDaysAgo = ChronoUnit.DAYS.between(permit.getEndDate(), LocalDate.now());
             if (expiredDaysAgo > MAX_EXPIRED_CALENDAR_DAYS) {
                 throw new ExpiredTooLongException(expiredDaysAgo, MAX_EXPIRED_CALENDAR_DAYS);
             }
+        }
+
+        // Step 3 (BR-3): Date Validation
+        if (newEndDate == null || !newEndDate.isAfter(permit.getEndDate())) {
+            throw new InvalidEndDateException(permit.getEndDate(), newEndDate);
         }
     }
 }

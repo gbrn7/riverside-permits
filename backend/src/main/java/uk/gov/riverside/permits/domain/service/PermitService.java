@@ -72,7 +72,7 @@ public class PermitService {
             List<Predicate> predicates = new ArrayList<>();
 
             if (permitNumber != null && !permitNumber.trim().isEmpty()) {
-                predicates.add(cb.equal(cb.lower(root.get("permitNumber")), permitNumber.trim().toLowerCase()));
+                predicates.add(cb.like(cb.lower(root.get("permitNumber")), permitNumber.trim().toLowerCase() + "%"));
             }
 
             if (holderName != null && !holderName.trim().isEmpty()) {

@@ -219,6 +219,32 @@ In this project, I used the AI assistant (Antigravity / CLI) as an active, high-
 5. **Enforcing Meta-Accountability:**
    I required the AI to record this steering methodology directly in `AGENTS.md` and `DECISIONS.md`. By forcing the AI system to document how it is steered, the engineering workflow itself becomes reproducible, auditable, and transparent to external evaluators.
 
+### 5.6 Practical Case Study: How I Steered AI Through Auditing & TDD Remediation
+
+A concrete demonstration of the **Human Conductor Model** occurred during our codebase verification and bug remediation session:
+
+1. **Step 1: Scoped Requirement Decomposition (`analyse the requirement...`)**
+   - **My Steering:** Rather than allowing the AI to write unguided code, I ordered a focused, structured breakdown of the job test requirements (`BRIEF.md`, `stories.md`, `clarifications.md`).
+   - **Outcome:** The AI systematically cataloged all 4 user journeys (RC-1 through RC-4), highlighted the 8 core stakeholder contradictions, and isolated the financial non-negotiables (30-day statutory cap, Council Use £0 exemption, 90-day grace window).
+
+2. **Step 2: Adversarial Multi-Agent Codebase Audit (`check all requirement in frontend and backend...`)**
+   - **My Steering:** I directed the AI to audit both the Spring Boot backend and React frontend against the compiled specification.
+   - **Orchestration:** The AI dispatched two parallel, isolated research subagents (Backend Auditor and Frontend Auditor) to inspect every file against the acceptance criteria and anti-hallucination rules.
+   - **Findings:** Verified that the core financial logic was sound, while surfacing 6 backend edge-case bugs and 2 minor frontend display caveats.
+
+3. **Step 3: Atomic, Disciplined TDD Remediation (`perbaiki bug 1`, `perbaik bug 2`, `oke sekarang bug 3 perbaiki`)**
+   - **My Steering:** Rather than giving a blanket command (*"fix all bugs"*), which often leads to uncontrolled cross-file regressions, I enforced sequential, one-by-one bug resolution:
+     - **Bug 1 (Search Exact Match → Prefix LIKE):** Directed remediation of `PermitService.java` where `cb.equal(...)` caused partial permit queries (`P-2026`) to return empty results. Added a failing integration test first (`shouldFilterByPermitNumberPrefix`), applied `cb.like(..., value + "%")`, and verified it passed.
+     - **Bug 2 (Validation Fail-Fast Sequence):** Addressed the ordering bug in `PermitEligibilityValidator.java` where date validation preceded status validation. Re-sequenced the checks so that ineligible statuses (`WITHDRAWN`, `DRAFT`, `EXPIRED > 90d`) fail fast with HTTP 409 before date syntax is evaluated. Verified with both unit and HTTP integration tests.
+     - **Bug 3 (Preview Contract Normalization):** Normalized the renewal preview endpoint to adhere strictly to `1d-technical-document.md` (`GET /api/permits/{id}/renewal-preview?newEndDate=YYYY-MM-DD`). Added Jackson aliases (`fee`, `capped`) in `RenewalPreviewDto.java`, updated `GlobalExceptionHandler.java`, adjusted the frontend API client in `api.ts`, and verified all 30 backend tests and the React frontend build passed without error.
+
+4. **Step 4: Continuous Verification Gate**
+   - At every single step, code changes were validated against the full test suite (`./mvnw test`) and the frontend compiler (`tsc -b && vite build`). No code was committed on faith or assumption.
+   - Total backend integration and unit tests expanded from 24 to 30 passing tests.
+
+5. **Step 5: Transparent Documentation (`write it on DECISIONS.md how i am use`)**
+   - Captured the exact prompt sequence, reasoning, and test evidence in `DECISIONS.md`, ensuring full accountability for how human steering kept AI code generation strictly aligned with domain requirements.
+
 ---
 
 ## 6. What We'd Do With Another Six Hours

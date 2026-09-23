@@ -43,6 +43,18 @@ class PermitControllerIntegrationTest {
                 .andExpect(jsonPath("$.content[0].purposeName", not(emptyOrNullString())));
     }
 
+    // Requirement: FR-01, RC-1
+    @Test
+    @DisplayName("GET /api/permits filters by permitNumber case-insensitive prefix match")
+    void shouldFilterByPermitNumberPrefix() throws Exception {
+        mockMvc.perform(get("/api/permits")
+                        .param("permitNumber", "p-2026")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", not(empty())))
+                .andExpect(jsonPath("$.content[*].permitNumber", everyItem(startsWith("P-2026"))));
+    }
+
     // Requirement: FR-07, BR-8
     @Test
     @DisplayName("GET /api/permits with no match returns 200 OK with empty content, never 404")
@@ -79,6 +91,37 @@ class PermitControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error", is("NOT_FOUND")));
+    }
+
+    // Requirement: FR-12, FR-14, FR-16, RC-3 Preview (Spec 1d: GET /api/permits/{id}/renewal-preview)
+    @Test
+    @DisplayName("GET /api/permits/{id}/renewal-preview returns calculated fee and 30-day cap breakdown per 1d spec")
+    void shouldPreviewRenewalCalculationViaGetEndpoint() throws Exception {
+        PermitEntity permit = permitRepository.findByPermitNumber("P-2026-0001").orElseThrow();
+        LocalDate newEndDate = permit.getEndDate().plusDays(40); // 40 days -> capped at 30 days
+
+        mockMvc.perform(get("/api/permits/" + permit.getId() + "/renewal-preview")
+                        .param("newEndDate", newEndDate.toString())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.daysAdded", is(40)))
+                .andExpect(jsonPath("$.cappedDays", is(30)))
+                .andExpect(jsonPath("$.capped", is(true)))
+                .andExpect(jsonPath("$.fee", is(3600.00)))
+                .andExpect(jsonPath("$.calculatedFee", is(3600.00)))
+                .andExpect(jsonPath("$.resultingStatus", is("AWAITING_PAYMENT")));
+    }
+
+    @Test
+    @DisplayName("GET /api/permits/{id}/renewal-preview returns 400 for newEndDate not after current endDate")
+    void shouldRejectInvalidEndDateOnGetPreview() throws Exception {
+        PermitEntity permit = permitRepository.findByPermitNumber("P-2026-0001").orElseThrow();
+
+        mockMvc.perform(get("/api/permits/" + permit.getId() + "/renewal-preview")
+                        .param("newEndDate", permit.getEndDate().toString())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error", is("INVALID_END_DATE")));
     }
 
     // Requirement: FR-12, FR-14, FR-16, RC-3 Preview
@@ -170,6 +213,20 @@ class PermitControllerIntegrationTest {
         mockMvc.perform(post("/api/permits/" + permit.getId() + "/renewals")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"newEndDate\":\"" + newEndDate + "\"}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error", is("WRONG_STATUS")));
+    }
+
+    // Requirement: Validation Sequence (1d §4 RC-3)
+    @Test
+    @DisplayName("POST /api/permits/{id}/renewals rejects WITHDRAWN permit with 409 WRONG_STATUS even if newEndDate is invalid")
+    void shouldRejectWithdrawnPermitEvenWithInvalidEndDate() throws Exception {
+        PermitEntity permit = permitRepository.findByPermitNumber("P-2026-0008").orElseThrow();
+        LocalDate invalidDate = permit.getEndDate().minusDays(1);
+
+        mockMvc.perform(post("/api/permits/" + permit.getId() + "/renewals")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"newEndDate\":\"" + invalidDate + "\"}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error", is("WRONG_STATUS")));
     }

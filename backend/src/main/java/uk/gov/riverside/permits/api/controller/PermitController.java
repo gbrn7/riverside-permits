@@ -52,10 +52,22 @@ public class PermitController {
     }
 
     /**
-     * RC-3: Preview Renewal
+     * RC-3: Preview Renewal (1d Technical Document Spec: GET /api/permits/{id}/renewal-preview?newEndDate=YYYY-MM-DD)
+     */
+    @GetMapping("/{id}/renewal-preview")
+    public ResponseEntity<RenewalPreviewDto> previewRenewal(
+            @PathVariable Long id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate newEndDate) {
+
+        RenewalPreviewDto response = permitService.previewRenewal(id, new RenewalRequest(newEndDate));
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * RC-3: Preview Renewal (POST legacy / backward compatibility)
      */
     @PostMapping("/{id}/renewals/preview")
-    public ResponseEntity<RenewalPreviewDto> previewRenewal(
+    public ResponseEntity<RenewalPreviewDto> previewRenewalPost(
             @PathVariable Long id,
             @Valid @RequestBody RenewalRequest request) {
 

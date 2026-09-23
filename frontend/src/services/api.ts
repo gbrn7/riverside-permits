@@ -66,12 +66,10 @@ export const api = {
     return request<PermitDetail>(`/permits/${id}`);
   },
 
-  // RC-3: Preview renewal
+  // RC-3: Preview renewal (Spec: GET /api/permits/{id}/renewal-preview?newEndDate=YYYY-MM-DD)
   async previewRenewal(id: number, newEndDate: string): Promise<RenewalPreview> {
-    return request<RenewalPreview>(`/permits/${id}/renewals/preview`, {
-      method: 'POST',
-      body: JSON.stringify({ newEndDate }),
-    });
+    const params = new URLSearchParams({ newEndDate });
+    return request<RenewalPreview>(`/permits/${id}/renewal-preview?${params.toString()}`);
   },
 
   // RC-3: Commit renewal
