@@ -1,7 +1,7 @@
 # Verification Gate Report: RC-4 (Withdraw a Permit)
 
-> **Execution Timestamp:** 2026-09-23 08:50:07  
-> **Overall Pipeline Status:** **PASSED**  
+> **Execution Timestamp:** 2026-09-23 22:10:23  
+> **Overall Pipeline Status:** **FAILED**  
 > **Evaluation Framework:** Automated Anti-Invention & Anti-Drop Governance Suite
 
 ---
@@ -10,9 +10,9 @@
 
 | Gate | Purpose | Status | Details |
 | :--- | :--- | :---: | :--- |
-| **1. Anti-Invention Gate** | Verifies 0 unauthorized tables, columns, or routes | **PASS** | 0 inventions detected. Whitelist validated. |
+| **1. Anti-Invention Gate** | Verifies 0 unauthorized tables, columns, or routes | **FAIL** | 1 violations detected |
 | **2. Anti-Drop Gate** | Verifies 100% test coverage for all Functional Requirements | **PASS** | 100% coverage (6/6 FRs verified). |
-| **3. Execution Gate** | Compiles & runs JUnit 5 integration tests and Vite build | **PASS** | All tests passed cleanly. Production build OK. |
+| **3. Execution Gate** | Compiles & runs JUnit 5 integration tests and Vite build | **FAIL** | All tests passed cleanly. Production build OK. |
 
 ---
 
@@ -22,7 +22,8 @@
 - **Negative Word Filter:** Checked for forbidden e-commerce patterns (`['refund', 'chargeback', 'stripe', 'paypal', 'checkout', 'cancellation']`).
 
 **Results:**
-- **Result: PASSED.** The generated code introduced zero phantom entities, zero unrequested refund columns, and strictly conformed to `1d-technical-document.md`.
+- **Result: FAILED.** The following inventions were detected and rejected:
+  - `INVENTION: Undeclared HTTP route 'GET /api/permits/{id}/renewal-preview' in PermitController.java`
 
 ---
 
@@ -46,7 +47,7 @@ Each requirement defined in `artifacts/rc4/1c-functional-document.md` was checke
 ## 4. Gate 3 Details: Test & Build Execution
 
 ```
-All backend slice tests and frontend builds passed cleanly.
+Skipped test execution due to static gate failure.
 ```
 
 ---
