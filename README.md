@@ -115,12 +115,12 @@ The client starts on `http://localhost:5173` and automatically proxies `/api/*` 
 
 ## 4. Test Suite Execution
 
-Run the backend unit and integration test suite (asserting all 18 functional requirements and business rules):
+Run the backend unit and integration test suite (asserting all 24 functional requirements, domain rules, and withdrawal journeys):
 ```bash
 cd backend
 ./mvnw test
 ```
-**Results:** 19/19 tests passing (`FeeCalculatorTest`, `PermitEligibilityValidatorTest`, `PermitControllerIntegrationTest`).
+**Results:** **24/24 tests passing** (`FeeCalculatorTest`, `PermitEligibilityValidatorTest`, `PermitControllerIntegrationTest`, `PermitWithdrawalIntegrationTest`).
 
 Run the frontend TypeScript & production build check:
 ```bash
@@ -130,7 +130,31 @@ npm run build
 
 ---
 
-## 5. Seeded Test Data & Verification Scenarios
+## 5. Automated AI Agent Pipeline & Verification Suite (Part 4)
+
+The project includes an autonomous AI agent pipeline and dual-gate verification engine in [`pipeline/`](pipeline) that transforms raw requirements into downstream artifacts (`artifacts/rc4/`), generates code, and validates them against anti-invention and anti-drop guardrails before human review.
+
+### Running the Pipeline:
+
+```bash
+# 1. Run complete end-to-end reconciliation, artifact generation, code generation, and verification:
+python3 pipeline/run_pipeline.py --story=RC-4
+
+# 2. Run the verification gates only (checks schema whitelist, RTM coverage, and tests):
+python3 pipeline/run_pipeline.py --story=RC-4 --verify-only
+
+# 3. Prove Anti-Invention Gate (Simulates unapproved refund tables/endpoints; halts build with code 1):
+python3 pipeline/run_pipeline.py --story=RC-4 --simulate-invention --verify-only
+
+# 4. Prove Anti-Drop Gate (Simulates dropped acceptance criteria; halts build with code 1):
+python3 pipeline/run_pipeline.py --story=RC-4 --simulate-drop --verify-only
+```
+
+The generated verification report is recorded at [`artifacts/rc4/VERIFICATION_REPORT.md`](artifacts/rc4/VERIFICATION_REPORT.md).
+
+---
+
+## 6. Seeded Test Data & Verification Scenarios
 
 The system is pre-seeded with realistic scenarios demonstrating the core business rules:
 
@@ -144,12 +168,14 @@ The system is pre-seeded with realistic scenarios demonstrating the core busines
 
 ---
 
-## 6. Deliverables & Documentation Index
+## 7. Deliverables & Documentation Index
 
-- [`artifacts/1a-business-flowchart.md`](artifacts/1a-business-flowchart.md) — Non-technical council officer workflow.
-- [`artifacts/1b-technical-flowchart.md`](artifacts/1b-technical-flowchart.md) — Engineering component and sequence flow.
+- [`artifacts/1a-business-flowchart.md`](artifacts/1a-business-flowchart.md) — Non-technical council officer workflow (Part 1).
+- [`artifacts/1b-technical-flowchart.md`](artifacts/1b-technical-flowchart.md) — Engineering component and sequence flow (Part 1).
 - [`artifacts/1c-functional-document.md`](artifacts/1c-functional-document.md) — Client contract & Requirements Traceability Matrix (FR-01 to FR-18).
 - [`artifacts/1d-technical-document.md`](artifacts/1d-technical-document.md) — Indispensable technical specification (Schemas, APIs, BR-1 to BR-10).
-- [`ASSUMPTIONS.md`](ASSUMPTIONS.md) — 11 documented conflicts, decisions, financial formulas, and escalation routes.
+- [`ASSUMPTIONS.md`](ASSUMPTIONS.md) — 11 documented conflicts, decisions, financial formulas, and escalation routes (Part 3).
+- [`artifacts/rc4/`](artifacts/rc4/) — AI-generated artifacts (`1a`, `1b`, `1c`, `1d`) and [`VERIFICATION_REPORT.md`](artifacts/rc4/VERIFICATION_REPORT.md) (Part 4).
+- [`pipeline/`](pipeline/) — Reconciler, generator, and dual-gate verifier engine (Part 4).
 - [`AGENTS.md`](AGENTS.md) — Agent steering rules, anti-hallucination guardrails, and human conductor protocol.
 - [`DECISIONS.md`](DECISIONS.md) — Architectural tradeoffs, Claude vs Gemini evaluation, and AI pairing protocols.
