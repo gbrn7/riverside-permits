@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FileText, AlertCircle } from 'lucide-react';
 import type { Hall, PageResponse, PermitSummary, Purpose, SearchFilters } from '../types/permit';
 import { api, ApiRequestError } from '../services/api';
+import { useDebounce } from '../lib/useDebounce';
 import { FilterBar } from './FilterBar';
 import { PermitTable } from './PermitTable';
 import { Pagination } from './Pagination';
@@ -18,6 +19,20 @@ const DEFAULT_FILTERS: SearchFilters = {
   startDateTo: '',
   page: 0,
   size: 10,
+};
+
+const isSameFilters = (a: SearchFilters, b: SearchFilters): boolean => {
+  return (
+    a.permitNumber === b.permitNumber &&
+    a.holderName === b.holderName &&
+    a.hallId === b.hallId &&
+    a.purposeId === b.purposeId &&
+    a.status === b.status &&
+    a.startDateFrom === b.startDateFrom &&
+    a.startDateTo === b.startDateTo &&
+    a.page === b.page &&
+    a.size === b.size
+  );
 };
 
 interface PermitRegisterProps {
@@ -43,6 +58,34 @@ export const PermitRegister: React.FC<PermitRegisterProps> = ({ onSelectPermit }
     };
   });
 
+  const debouncedPermitNumber = useDebounce(filters.permitNumber, 300);
+  const debouncedHolderName = useDebounce(filters.holderName, 300);
+
+  const activeFilters = useMemo<SearchFilters>(
+    () => ({
+      permitNumber: debouncedPermitNumber,
+      holderName: debouncedHolderName,
+      hallId: filters.hallId,
+      purposeId: filters.purposeId,
+      status: filters.status,
+      startDateFrom: filters.startDateFrom,
+      startDateTo: filters.startDateTo,
+      page: filters.page,
+      size: filters.size,
+    }),
+    [
+      debouncedPermitNumber,
+      debouncedHolderName,
+      filters.hallId,
+      filters.purposeId,
+      filters.status,
+      filters.startDateFrom,
+      filters.startDateTo,
+      filters.page,
+      filters.size,
+    ]
+  );
+
   const [data, setData] = useState<PageResponse<PermitSummary>>({
     content: [],
     page: 0,
@@ -53,6 +96,9 @@ export const PermitRegister: React.FC<PermitRegisterProps> = ({ onSelectPermit }
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const latestRequestId = useRef(0);
+  const lastFetchedFiltersRef = useRef<SearchFilters | null>(null);
 
   // Sync state to URL search parameters for back-navigation preservation
   const syncUrlParams = (currentFilters: SearchFilters) => {
@@ -88,27 +134,42 @@ export const PermitRegister: React.FC<PermitRegisterProps> = ({ onSelectPermit }
   }, []);
 
   // Fetch permits
-  const fetchPermits = useCallback(async (activeFilters: SearchFilters) => {
+  const fetchPermits = useCallback(async (filtersToFetch: SearchFilters) => {
+    const requestId = ++latestRequestId.current;
+    lastFetchedFiltersRef.current = filtersToFetch;
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const response = await api.searchPermits(activeFilters);
-      setData(response);
-      syncUrlParams(activeFilters);
+      const response = await api.searchPermits(filtersToFetch);
+      if (requestId === latestRequestId.current) {
+        setData(response);
+        syncUrlParams(filtersToFetch);
+      }
     } catch (err) {
-      if (err instanceof ApiRequestError) {
-        setErrorMessage(err.message);
-      } else {
-        setErrorMessage('Failed to connect to backend server. Please verify the API is running.');
+      if (requestId === latestRequestId.current) {
+        if (err instanceof ApiRequestError) {
+          setErrorMessage(err.message);
+        } else {
+          setErrorMessage('Failed to connect to backend server. Please verify the API is running.');
+        }
       }
     } finally {
-      setIsLoading(false);
+      if (requestId === latestRequestId.current) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
+  // Automatically fetch when active debounced/immediate filters change
   useEffect(() => {
-    fetchPermits(filters);
-  }, [fetchPermits, filters.page]);
+    if (
+      lastFetchedFiltersRef.current &&
+      isSameFilters(lastFetchedFiltersRef.current, activeFilters)
+    ) {
+      return;
+    }
+    fetchPermits(activeFilters);
+  }, [fetchPermits, activeFilters]);
 
   const handleFilterChange = (newValues: Partial<SearchFilters>) => {
     setFilters((prev) => ({ ...prev, ...newValues, page: 0 }));
